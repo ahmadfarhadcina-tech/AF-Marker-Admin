@@ -146,3 +146,61 @@ tbody tr:hover {
 :root[data-theme="dark"] .sidebar-bottom {
   border-color: var(--line);
 }
+
+/* AF.Market — Smooth theme transition */
+:root {
+  color-scheme: light;
+  --theme-transition: 900ms;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html {
+  background: #F5EBDD;
+}
+
+body,
+.sidebar,
+.topbar,
+.card,
+.stat-card,
+.panel,
+table,
+th,
+td,
+input,
+select,
+textarea,
+.button,
+.modal,
+nav,
+header,
+section {
+  transition:
+    background-color var(--theme-transition) cubic-bezier(.22, 1, .36, 1),
+    color var(--theme-transition) cubic-bezier(.22, 1, .36, 1),
+    border-color var(--theme-transition) cubic-bezier(.22, 1, .36, 1),
+    box-shadow var(--theme-transition) cubic-bezier(.22, 1, .36, 1);
+}
+
+#theme-toggle {
+  transition:
+    background-color 700ms cubic-bezier(.22, 1, .36, 1),
+    color 700ms cubic-bezier(.22, 1, .36, 1),
+    transform 350ms cubic-bezier(.22, 1, .36, 1);
+}
+
+#theme-toggle:active {
+  transform: scale(.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
