@@ -272,6 +272,7 @@ function renderAll() {
   renderEngagement();
 }
 
+
 function renderCharts() {
   if (!window.Chart) return;
 
@@ -280,60 +281,66 @@ function renderCharts() {
 
   if (!snapshotCanvas || !statusCanvas) return;
 
-  if (state.snapshotChart) {
-    state.snapshotChart.destroy();
-  }
+  // Snapshot chart: create once, then update its data.
+  const snapshotData = [
+    state.profiles.length,
+    state.products.length,
+    state.reports.length,
+    state.comments.length
+  ];
 
-  state.snapshotChart = new Chart(snapshotCanvas, {
-    type: "bar",
-    data: {
-      labels: ["Users", "Products", "Reports", "Comments"],
-      datasets: [{
-        label: "Records",
-        data: [
-          state.profiles.length,
-          state.products.length,
-          state.reports.length,
-          state.comments.length
-        ],
-        backgroundColor: [
-          "#a8c4ff",
-          "#c9b8ff",
-          "#ffdca0",
-          "#9fe4c2"
-        ],
-        borderRadius: 7,
-        borderSkipped: false,
-        maxBarThickness: 45
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
+  if (!state.snapshotChart) {
+    state.snapshotChart = new Chart(snapshotCanvas, {
+      type: "bar",
+      data: {
+        labels: ["Users", "Products", "Reports", "Comments"],
+        datasets: [{
+          label: "Records",
+          data: snapshotData,
+          backgroundColor: [
+            "#a8c4ff",
+            "#c9b8ff",
+            "#ffdca0",
+            "#9fe4c2"
+          ],
+          borderRadius: 7,
+          borderSkipped: false,
+          maxBarThickness: 45
+        }]
       },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: {
-            color: "#7c8799",
-            font: { size: 10 }
-          }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 350 },
+        plugins: {
+          legend: { display: false }
         },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            precision: 0,
-            color: "#929bad",
-            font: { size: 10 }
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: "#7c8799",
+              font: { size: 10 }
+            }
           },
-          grid: { color: "#f0f2f6" }
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: "#929bad",
+              font: { size: 10 }
+            },
+            grid: { color: "#f0f2f6" }
+          }
         }
       }
-    }
-  });
+    });
+  } else {
+    state.snapshotChart.data.datasets[0].data = snapshotData;
+    state.snapshotChart.update("none");
+  }
 
+  // Count products by status.
   const counts = {};
 
   state.products.forEach((product) => {
@@ -352,11 +359,60 @@ function renderCharts() {
     "#9ba6b7"
   ];
 
-  if (state.statusChart) {
-    state.statusChart.destroy();
+  const chartLabels = labels.length ? labels : ["No products"];
+  const chartData = labels.length
+    ? labels.map((label) => counts[label])
+    : [1];
+
+  const chartColors = labels.length
+    ? labels.map((_, index) => colors[index % colors.length])
+    : ["#edf0f5"];
+
+  // Status chart: create once, then update without rotation.
+  if (!state.statusChart) {
+    state.statusChart = new Chart(statusCanvas, {
+      type: "doughnut",
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: chartColors,
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "72%",
+        animation: {
+          duration: 350,
+          animateRotate: false,
+          animateScale: false
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  } else {
+    state.statusChart.data.labels = chartLabels;
+    state.statusChart.data.datasets[0].data = chartData;
+    state.statusChart.data.datasets[0].backgroundColor = chartColors;
+    state.statusChart.update("none");
   }
 
-  state.statusChart = new Chart(statusCanvas, {
+  // Update the status legend.
+  const legend = $("#status-legend");
+
+  if (legend) {
+    legend.innerHTML = labels.map((label, index) => `
+      <span style="--legend:${colors[index % colors.length]}">
+        ${esc(label)} ${counts[label]}
+      </span>
+    `).join("");
+  }
+}
 
 function renderRecent() {
   const rows = [...state.products]
