@@ -281,7 +281,7 @@ function renderCharts() {
 
   if (!snapshotCanvas || !statusCanvas) return;
 
-  // Snapshot chart: create once, then update its data.
+  // Snapshot chart: create once, then update data.
   const snapshotData = [
     state.profiles.length,
     state.products.length,
@@ -349,26 +349,29 @@ function renderCharts() {
   });
 
   const labels = Object.keys(counts);
-
-  const colors = [
-    "#22ad7b",
-    "#7697ef",
-    "#f0b94f",
-    "#b19aec",
-    "#ed8c8c",
-    "#9ba6b7"
-  ];
-
   const chartLabels = labels.length ? labels : ["No products"];
   const chartData = labels.length
     ? labels.map((label) => counts[label])
     : [1];
 
+  // Rainbow gradient for the doughnut segments.
+  const rainbowColors = [
+    "#ff1744",
+    "#ff9100",
+    "#ffea00",
+    "#00e676",
+    "#00e5ff",
+    "#2979ff",
+    "#7c4dff",
+    "#f500d4"
+  ];
+
   const chartColors = labels.length
-    ? labels.map((_, index) => colors[index % colors.length])
+    ? labels.map((_, index) =>
+        rainbowColors[index % rainbowColors.length]
+      )
     : ["#edf0f5"];
 
-  // Status chart: create once, then update without rotation.
   if (!state.statusChart) {
     state.statusChart = new Chart(statusCanvas, {
       type: "doughnut",
@@ -395,24 +398,89 @@ function renderCharts() {
         }
       }
     });
+
+    // Rotate the actual doughnut segment colors smoothly.
+    let rainbowOffset = 0;
+    let lastFrame = 0;
+    let animationId = null;
+
+    const animateRainbow = (timestamp) => {
+      if (!statusCanvas.isConnected) {
+        animationId = null;
+        return;
+      }
+
+      if (document.hidden) {
+        lastFrame = 0;
+        animationId = requestAnimationFrame(animateRainbow);
+        return;
+      }
+
+      if (!lastFrame) lastFrame = timestamp;
+
+      const delta = Math.min(timestamp - lastFrame, 50);
+      lastFrame = timestamp;
+
+      rainbowOffset = (rainbowOffset + delta * 0.018) % 360;
+
+      const chart = state.statusChart;
+
+      if (chart && chart.canvas === statusCanvas) {
+        const dataset = chart.data.datasets[0];
+        const currentLabels = chart.data.labels || [];
+        const segmentCount = currentLabels.length;
+
+        if (segmentCount > 0 && currentLabels[0] !== "No products") {
+          const colors = currentLabels.map((_, index) => {
+            const hue =
+              (rainbowOffset + (index * 360) / segmentCount) % 360;
+
+            return `hsl(${hue}, 90%, 58%)`;
+          });
+
+          dataset.backgroundColor = colors;
+          chart.update("none");
+        }
+      }
+
+      animationId = requestAnimationFrame(animateRainbow);
+    };
+
+    animationId = requestAnimationFrame(animateRainbow);
   } else {
     state.statusChart.data.labels = chartLabels;
     state.statusChart.data.datasets[0].data = chartData;
-    state.statusChart.data.datasets[0].backgroundColor = chartColors;
+
+    // Keep the rainbow animation running while updating live data.
+    if (labels.length) {
+      const existingColors = state.statusChart.data.datasets[0].backgroundColor;
+
+      if (!Array.isArray(existingColors) || existingColors.length !== labels.length) {
+        state.statusChart.data.datasets[0].backgroundColor = chartColors;
+      }
+    } else {
+      state.statusChart.data.datasets[0].backgroundColor = ["#edf0f5"];
+    }
+
     state.statusChart.update("none");
   }
 
-  // Update the status legend.
+  // Update the legend without changing its original structure.
   const legend = $("#status-legend");
 
   if (legend) {
+    const legendColors = labels.length
+      ? labels.map((_, index) => rainbowColors[index % rainbowColors.length])
+      : [];
+
     legend.innerHTML = labels.map((label, index) => `
-      <span style="--legend:${colors[index % colors.length]}">
+      <span style="--legend:${legendColors[index]}">
         ${esc(label)} ${counts[label]}
       </span>
     `).join("");
   }
 }
+
 
 function renderRecent() {
   const rows = [...state.products]
