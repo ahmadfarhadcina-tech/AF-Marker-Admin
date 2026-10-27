@@ -166,3 +166,47 @@ $("#add-product").addEventListener("click",()=>editProduct());
 $("#signout").addEventListener("click",async()=>{try{await signOutAdmin()}finally{location.replace("./index.html")}});
 $("#menu-toggle").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
 guardedInit();
+
+/* Theme toggle */
+const themeToggle = $("#theme-toggle");
+
+function applyTheme(theme) {
+  const selectedTheme = theme === "dark" ? "dark" : "light";
+
+  document.documentElement.setAttribute("data-theme", selectedTheme);
+
+  if (themeToggle) {
+    themeToggle.setAttribute("aria-pressed", String(selectedTheme === "dark"));
+    themeToggle.setAttribute(
+      "aria-label",
+      selectedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+    );
+  }
+}
+
+let savedTheme = "light";
+
+try {
+  savedTheme = localStorage.getItem("af-market-theme") || "light";
+} catch (error) {
+  // Continue with the default theme if storage is unavailable.
+}
+
+applyTheme(savedTheme);
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const nextTheme =
+      document.documentElement.getAttribute("data-theme") === "dark"
+        ? "light"
+        : "dark";
+
+    applyTheme(nextTheme);
+
+    try {
+      localStorage.setItem("af-market-theme", nextTheme);
+    } catch (error) {
+      // The theme still works for this page session.
+    }
+  });
+}
