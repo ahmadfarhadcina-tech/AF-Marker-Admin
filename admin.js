@@ -1,19 +1,4 @@
 import { supabase, signOutAdmin } from "./auth.js";
-const allowedOrigin = "https://ahmadfarhadcina-tech.github.io";
-const allowedPath = "/AF-Marker-Admin/";
-
-if (
-  location.origin !== allowedOrigin ||
-  !location.pathname.startsWith(allowedPath)
-) {
-  document.body.innerHTML = `
-    <main style="font-family:sans-serif;padding:24px">
-      <h2>Unauthorized domain</h2>
-      <p>This admin panel is not authorized on this domain.</p>
-    </main>
-  `;
-  throw new Error("Unauthorized domain");
-}
 const ADMIN_ID = "f4052f3f-b32a-4eb7-a9f8-5b6e4c7ffc7c";
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
