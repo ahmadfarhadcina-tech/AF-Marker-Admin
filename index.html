@@ -82,5 +82,32 @@
         "Authentication is not configured yet. No login was attempted.";
     });
   </script>
+
+<script type="module">
+  import { signInAdmin } from "./auth.js";
+
+  const form = document.querySelector("form");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const email = form.querySelector('input[type="email"]').value.trim();
+    const password = form.querySelector('input[type="password"]').value;
+    const message = document.querySelector("#message");
+
+    try {
+      await signInAdmin(email, password);
+      message.textContent = "Login successful.";
+      message.style.color = "#00ff99";
+    } catch (error) {
+      message.textContent = error.message || "Login failed.";
+      message.style.color = "#ff5555";
+    }
+  });
+</script>
+</body>
+</html>
+
+
 </body>
 </html>
