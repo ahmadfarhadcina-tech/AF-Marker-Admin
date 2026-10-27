@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AF.Market Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="./dashboard.html"><span class="brand-mark">AF</span><span><b>AF.Market</b><small>ADMIN CONSOLE</small></span></a>
+      <div class="nav-label">WORKSPACE</div>
+      <nav id="main-nav">
+        <button class="nav-item active" data-view="overview"><span>▦</span> Overview</button>
+        <button class="nav-item" data-view="profiles"><span>♙</span> Users <em id="users-nav-count">—</em></button>
+        <button class="nav-item" data-view="products"><span>▣</span> Products <em id="products-nav-count">—</em></button>
+        <button class="nav-item" data-view="reports"><span>⚑</span> Reports <em id="reports-nav-count">—</em></button>
+        <button class="nav-item" data-view="comments"><span>☰</span> Comments</button>
+        <button class="nav-item" data-view="engagement"><span>♡</span> Engagement</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="admin-chip"><span class="avatar">AF</span><span><b>Administrator</b><small id="admin-email">Checking session…</small></span></div>
+        <button id="signout" class="signout">↪ Sign out</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn mobile-menu" id="menu-toggle" aria-label="Open menu">☰</button>
+        <div><div class="eyebrow">AF.MARKET / ADMINISTRATION</div><h1 id="page-title">Overview</h1></div>
+        <div class="top-actions"><span class="live-dot"></span><span class="status-text">Connected</span><button id="refresh" class="button button-light">↻ Refresh</button></div>
+      </header>
+      <section class="content">
+        <div id="notice" class="notice hidden" role="status"></div>
+        <section class="view active" id="view-overview">
+          <div class="welcome-row"><div><h2>Good to see you.</h2><p>Here is what is happening across your marketplace.</p></div><span class="date-pill" id="today"></span></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span>Total users</span><span class="stat-icon blue">♙</span></div><strong id="stat-users">—</strong><small>Registered profiles</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Total products</span><span class="stat-icon violet">▣</span></div><strong id="stat-products">—</strong><small>Marketplace listings</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Open reports</span><span class="stat-icon amber">⚑</span></div><strong id="stat-reports">—</strong><small>Items needing review</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Comments</span><span class="stat-icon green">☰</span></div><strong id="stat-comments">—</strong><small>Community activity</small></article>
+          </div>
+          <div class="charts-grid">
+            <article class="panel"><div class="panel-heading"><div><h3>Marketplace snapshot</h3><p>Current data from your Supabase database</p></div><span class="mini-tag">LIVE DATA</span></div><div class="chart-wrap"><canvas id="snapshot-chart"></canvas></div></article>
+            <article class="panel"><div class="panel-heading"><div><h3>Product status</h3><p>Distribution by listing status</p></div></div><div class="chart-wrap doughnut-wrap"><canvas id="status-chart"></canvas></div><div id="status-legend" class="legend"></div></article>
+          </div>
+          <article class="panel"><div class="panel-heading"><div><h3>Recent products</h3><p>Latest listings added to AF.Market</p></div><button class="button button-light" data-goto="products">View all →</button></div><div id="recent-products" class="table-wrap"><div class="loading">Loading marketplace data…</div></div></article>
+        </section>
+        <section class="view" id="view-profiles">
+          <div class="section-toolbar"><div><h2>Users & profiles</h2><p>Inspect individual profiles and update editable profile fields.</p></div><div class="toolbar-actions"><input id="profiles-search" class="search" placeholder="Search name, username, city…"><button class="button button-light" id="profiles-reload">↻ Refresh</button></div></div>
+          <div class="panel"><div id="profiles-table" class="table-wrap"><div class="loading">Loading profiles…</div></div></div>
+        </section>
+        <section class="view" id="view-products">
+          <div class="section-toolbar"><div><h2>Products</h2><p>Create, edit, publish, deactivate or remove listings.</p></div><div class="toolbar-actions"><input id="products-search" class="search" placeholder="Search title, category, city…"><button class="button button-primary" id="add-product">＋ Add product</button></div></div>
+          <div class="panel"><div id="products-table" class="table-wrap"><div class="loading">Loading products…</div></div></div>
+        </section>
+        <section class="view" id="view-reports">
+          <div class="section-toolbar"><div><h2>Reports</h2><p>Review reported listings. Resolve a report by removing it after review.</p></div><button class="button button-light" id="reports-reload">↻ Refresh</button></div>
+          <div class="panel"><div id="reports-table" class="table-wrap"><div class="loading">Loading reports…</div></div></div>
+        </section>
+        <section class="view" id="view-comments">
+          <div class="section-toolbar"><div><h2>Comments</h2><p>Review community comments and remove inappropriate entries.</p></div><input id="comments-search" class="search" placeholder="Search comment text…"></div>
+          <div class="panel"><div id="comments-table" class="table-wrap"><div class="loading">Loading comments…</div></div></div>
+        </section>
+        <section class="view" id="view-engagement">
+          <div class="section-toolbar"><div><h2>Engagement</h2><p>Explore likes, wishlists and follows stored in the marketplace.</p></div><button class="button button-light" id="engagement-reload">↻ Refresh</button></div>
+          <div class="stats-grid compact-stats">
+            <article class="stat-card"><div class="stat-top"><span>Product likes</span><span class="stat-icon blue">♡</span></div><strong id="stat-likes">—</strong></article>
+            <article class="stat-card"><div class="stat-top"><span>Wishlists</span><span class="stat-icon violet">☆</span></div><strong id="stat-wishlists">—</strong></article>
+            <article class="stat-card"><div class="stat-top"><span>Follows</span><span class="stat-icon green">⇄</span></div><strong id="stat-follows">—</strong></article>
+            <article class="stat-card"><div class="stat-top"><span>Comment likes</span><span class="stat-icon amber">♥</span></div><strong id="stat-comment-likes">—</strong></article>
+          </div>
+          <div class="panel"><div class="panel-heading"><div><h3>Engagement records</h3><p>Records are read-only here to prevent accidental relationship damage.</p></div></div><div id="engagement-tables" class="engagement-grid"></div></div>
+        </section>
+        <footer>AF.Market Admin <span>•</span> Private administration console</footer>
+      </section>
+    </main>
+  </div>
+  <div id="modal-root"></div>
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>
