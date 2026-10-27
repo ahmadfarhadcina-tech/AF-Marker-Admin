@@ -1250,3 +1250,11 @@ footer {
   background: #44351f;
   color: #ffd27b;
 }
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  border-radius: inherit;
+}
