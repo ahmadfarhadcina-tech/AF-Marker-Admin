@@ -281,7 +281,6 @@ function renderCharts() {
 
   if (!snapshotCanvas || !statusCanvas) return;
 
-  // Snapshot chart: create once, then update data.
   const snapshotData = [
     state.profiles.length,
     state.products.length,
@@ -354,7 +353,6 @@ function renderCharts() {
     ? labels.map((label) => counts[label])
     : [1];
 
-  // Rainbow gradient for the doughnut segments.
   const rainbowColors = [
     "#ff1744",
     "#ff9100",
@@ -371,6 +369,79 @@ function renderCharts() {
         rainbowColors[index % rainbowColors.length]
       )
     : ["#edf0f5"];
+
+  // Plugin draws a moving rainbow light directly on the ring.
+  const rainbowRingPlugin = {
+    id: "rainbowRingLight",
+
+    afterDatasetsDraw(chart) {
+      if (chart.canvas.id !== "status-chart") return;
+      if (document.hidden) return;
+
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data.length) return;
+      if ((chart.data.labels || [])[0] === "No products") return;
+
+      const ctx = chart.ctx;
+      const now = performance.now() / 1000;
+      const rainbowOffset = (now * 0.9) % (Math.PI * 2);
+
+      ctx.save();
+
+      meta.data.forEach((arc) => {
+        const p = arc.getProps([
+          "x",
+          "y",
+          "innerRadius",
+          "outerRadius",
+          "startAngle",
+          "endAngle"
+        ], true);
+
+        const span = p.endAngle - p.startAngle;
+        if (span <= 0) return;
+
+        const radius = (p.innerRadius + p.outerRadius) / 2;
+        const lightLength = Math.min(0.55, span);
+        const start = p.startAngle + rainbowOffset;
+        const end = start + lightLength;
+
+        const gradient = ctx.createConicGradient(
+          start,
+          p.x,
+          p.y
+        );
+
+        gradient.addColorStop(0, "#ff1744");
+        gradient.addColorStop(0.17, "#ff9100");
+        gradient.addColorStop(0.34, "#ffea00");
+        gradient.addColorStop(0.51, "#00e676");
+        gradient.addColorStop(0.68, "#00e5ff");
+        gradient.addColorStop(0.84, "#7c4dff");
+        gradient.addColorStop(1, "#ff1744");
+
+        // Clip the glow to the actual thickness of the doughnut ring.
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.outerRadius, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.innerRadius, 0, Math.PI * 2, true);
+        ctx.clip("evenodd");
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, start, end);
+        ctx.lineWidth = Math.max(2, p.outerRadius - p.innerRadius);
+        ctx.lineCap = "round";
+        ctx.strokeStyle = gradient;
+        ctx.shadowColor = "#ffffff";
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+  };
 
   if (!state.statusChart) {
     state.statusChart = new Chart(statusCanvas, {
@@ -396,66 +467,34 @@ function renderCharts() {
         plugins: {
           legend: { display: false }
         }
-      }
+      },
+      plugins: [rainbowRingPlugin]
     });
 
-    // Rotate the actual doughnut segment colors smoothly.
-    let rainbowOffset = 0;
-    let lastFrame = 0;
-    let animationId = null;
+    // One animation loop for the moving light.
+    const animate = () => {
+      if (!statusCanvas.isConnected || !state.statusChart) return;
 
-    const animateRainbow = (timestamp) => {
-      if (!statusCanvas.isConnected) {
-        animationId = null;
-        return;
+      if (!document.hidden) {
+        state.statusChart.draw();
       }
 
-      if (document.hidden) {
-        lastFrame = 0;
-        animationId = requestAnimationFrame(animateRainbow);
-        return;
-      }
-
-      if (!lastFrame) lastFrame = timestamp;
-
-      const delta = Math.min(timestamp - lastFrame, 50);
-      lastFrame = timestamp;
-
-      rainbowOffset = (rainbowOffset + delta * 0.018) % 360;
-
-      const chart = state.statusChart;
-
-      if (chart && chart.canvas === statusCanvas) {
-        const dataset = chart.data.datasets[0];
-        const currentLabels = chart.data.labels || [];
-        const segmentCount = currentLabels.length;
-
-        if (segmentCount > 0 && currentLabels[0] !== "No products") {
-          const colors = currentLabels.map((_, index) => {
-            const hue =
-              (rainbowOffset + (index * 360) / segmentCount) % 360;
-
-            return `hsl(${hue}, 90%, 58%)`;
-          });
-
-          dataset.backgroundColor = colors;
-          chart.update("none");
-        }
-      }
-
-      animationId = requestAnimationFrame(animateRainbow);
+      state.statusChart.$rainbowFrame = requestAnimationFrame(animate);
     };
 
-    animationId = requestAnimationFrame(animateRainbow);
+    state.statusChart.$rainbowFrame = requestAnimationFrame(animate);
   } else {
     state.statusChart.data.labels = chartLabels;
     state.statusChart.data.datasets[0].data = chartData;
 
-    // Keep the rainbow animation running while updating live data.
     if (labels.length) {
-      const existingColors = state.statusChart.data.datasets[0].backgroundColor;
+      const existingColors =
+        state.statusChart.data.datasets[0].backgroundColor;
 
-      if (!Array.isArray(existingColors) || existingColors.length !== labels.length) {
+      if (
+        !Array.isArray(existingColors) ||
+        existingColors.length !== labels.length
+      ) {
         state.statusChart.data.datasets[0].backgroundColor = chartColors;
       }
     } else {
@@ -465,12 +504,14 @@ function renderCharts() {
     state.statusChart.update("none");
   }
 
-  // Update the legend without changing its original structure.
+  // Keep the existing legend structure.
   const legend = $("#status-legend");
 
   if (legend) {
     const legendColors = labels.length
-      ? labels.map((_, index) => rainbowColors[index % rainbowColors.length])
+      ? labels.map((_, index) =>
+          rainbowColors[index % rainbowColors.length]
+        )
       : [];
 
     legend.innerHTML = labels.map((label, index) => `
@@ -480,6 +521,7 @@ function renderCharts() {
     `).join("");
   }
 }
+
 
 
 function renderRecent() {
