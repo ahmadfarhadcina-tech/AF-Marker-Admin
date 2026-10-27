@@ -1102,3 +1102,43 @@ footer {
     animation-duration: .01ms !important;
   }
 }
+
+/* Fix: AF.Market logo stays inside its small icon card */
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.sidebar .brand .brand-mark {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  flex: 0 0 40px;
+  padding: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.sidebar .brand .brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.sidebar .brand > span:last-child {
+  min-width: 0;
+}
+
+.sidebar .brand > span:last-child b,
+.sidebar .brand > span:last-child small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
