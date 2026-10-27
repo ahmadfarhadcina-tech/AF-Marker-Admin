@@ -118,5 +118,15 @@
   </div>
   <div id="modal-root"></div>
   <script type="module" src="./admin.js"></script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .catch((error) => console.error("PWA registration failed:", error));
+    });
+  }
+</script>
+
 </body>
 </html>
