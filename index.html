@@ -96,9 +96,11 @@
     const message = document.querySelector("#message");
 
     try {
-      await signInAdmin(email, password);
-      message.textContent = "Login successful.";
-      message.style.color = "#00ff99";
+    await signInAdmin(email, password);
+message.textContent = "Login successful. Redirecting...";
+message.style.color = "#00ff99";
+
+window.location.replace("./dashboard.html");
     } catch (error) {
       message.textContent = error.message || "Login failed.";
       message.style.color = "#ff5555";
