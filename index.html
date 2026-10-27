@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AF.Market Admin</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: #080d12;
+      color: #eef5f7;
+      font-family: system-ui, sans-serif;
+    }
+    main {
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      border: 1px solid #263640;
+      border-radius: 18px;
+      background: #101920;
+    }
+    .brand { color: #00e6a0; font-size: 28px; font-weight: 800; }
+    h1 { font-size: 23px; margin-bottom: 8px; }
+    p { color: #a7b7c0; line-height: 1.6; }
+    label { display: block; margin: 18px 0 8px; }
+    input, button {
+      width: 100%;
+      padding: 13px;
+      border-radius: 9px;
+      font: inherit;
+    }
+    input {
+      color: white;
+      background: #091116;
+      border: 1px solid #344650;
+    }
+    button {
+      margin-top: 20px;
+      border: 0;
+      background: #00e6a0;
+      color: #06120e;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #notice { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">AF.Market</div>
+    <h1>Admin Control Center</h1>
+    <p>Secure administration portal</p>
+
+    <form id="login-form">
+      <label for="email">Admin email</label>
+      <input id="email" type="email" autocomplete="username"
+             placeholder="Your admin email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password"
+             autocomplete="current-password"
+             placeholder="Your password" required>
+
+      <button type="submit">Continue</button>
+      <p id="notice" role="status">
+        Initial interface only — secure authentication is not connected yet.
+      </p>
+    </form>
+  </main>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", event => {
+      event.preventDefault();
+      document.getElementById("notice").textContent =
+        "Authentication is not configured yet. No login was attempted.";
+    });
+  </script>
+</body>
+</html>
