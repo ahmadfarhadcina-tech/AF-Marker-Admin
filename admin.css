@@ -204,3 +204,17 @@ section {
     animation-duration: .01ms !important;
   }
 }
+
+.afmarket-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 12px;
+}
+
+.afmarket-logo {
+  display: block;
+  width: min(100%, 180px);
+  height: 56px;
+  object-fit: contain;
+}
