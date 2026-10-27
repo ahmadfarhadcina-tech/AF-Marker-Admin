@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AF.Market Admin Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #080c0b;
+      color: #f2f5f3;
+      font-family: Arial, sans-serif;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      border-bottom: 1px solid #25342e;
+    }
+    h1 { font-size: 21px; margin: 0; }
+    h1 span { color: #00ff99; }
+    button {
+      background: #00ff99;
+      color: #06110b;
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    main { padding: 20px; max-width: 1100px; margin: auto; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+    }
+    .card, .panel {
+      background: #111916;
+      border: 1px solid #25342e;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .card p { color: #a5b5ad; margin: 0 0 12px; }
+    .number { font-size: 28px; color: #00ff99; }
+    h2 { font-size: 18px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 520px; }
+    th, td {
+      text-align: left;
+      padding: 12px 9px;
+      border-bottom: 1px solid #25342e;
+    }
+    th { color: #00ff99; }
+    #message { color: #a5b5ad; overflow-wrap: anywhere; }
+    @media (max-width: 480px) {
+      header { padding: 14px; }
+      main { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>AF.</span>Market Admin</h1>
+    <button id="logout">Sign out</button>
+  </header>
+
+  <main>
+    <h2>Dashboard overview</h2>
+    <p id="message">Checking administrator session...</p>
+
+    <section class="cards">
+      <div class="card">
+        <p>Profiles</p>
+        <strong class="number" id="profilesCount">—</strong>
+      </div>
+      <div class="card">
+        <p>Products</p>
+        <strong class="number" id="productsCount">—</strong>
+      </div>
+      <div class="card">
+        <p>Reports</p>
+        <strong class="number" id="reportsCount">—</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Recent products</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable">
+            <tr><td colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { supabase, signOutAdmin } from "./auth.js";
+
+    const ADMIN_ID = "f4052f3f-b32a-4eb7-a9f8-5b6e4c7ffc7c";
+    const message = document.querySelector("#message");
+
+    document.querySelector("#logout").addEventListener("click", async () => {
+      try {
+        await signOutAdmin();
+        location.replace("./index.html");
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    });
+
+    async function loadDashboard() {
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      const user = sessionData?.session?.user;
+
+      if (sessionError || !user || user.id !== ADMIN_ID) {
+        await supabase.auth.signOut();
+        location.replace("./index.html");
+        return;
+      }
+
+      message.textContent = "Loading dashboard data...";
+
+      const [profiles, products, reports, recent] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("products").select("id", { count: "exact", head: true }),
+        supabase.from("product_reports").select("id", { count: "exact", head: true }),
+        supabase.from("products")
+          .select("title, price, status, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10)
+      ]);
+
+      const results = [profiles, products, reports, recent];
+      const failed = results.find(result => result.error);
+
+      if (failed) {
+        message.textContent =
+          "Could not load data: " + failed.error.message;
+        return;
+      }
+
+      document.querySelector("#profilesCount").textContent =
+        profiles.count ?? 0;
+      document.querySelector("#productsCount").textContent =
+        products.count ?? 0;
+      document.querySelector("#reportsCount").textContent =
+        reports.count ?? 0;
+
+      const table = document.querySelector("#productsTable");
+      table.replaceChildren();
+
+      if (!recent.data.length) {
+        table.innerHTML =
+          '<tr><td colspan="4">No products found.</td></tr>';
+      } else {
+        for (const product of recent.data) {
+          const row = document.createElement("tr");
+
+          for (const value of [
+            product.title,
+            product.price,
+            product.status,
+            product.created_at
+              ? new Date(product.created_at).toLocaleDateString()
+              : "—"
+          ]) {
+            const cell = document.createElement("td");
+            cell.textContent = value ?? "—";
+            row.appendChild(cell);
+          }
+
+          table.appendChild(row);
+        }
+      }
+
+      message.textContent = "Dashboard loaded.";
+    }
+
+    loadDashboard().catch(error => {
+      message.textContent = "Error: " + error.message;
+    });
+  </script>
+</body>
+</html>
