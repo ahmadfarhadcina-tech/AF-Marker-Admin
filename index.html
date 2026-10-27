@@ -3,11 +3,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>AF.Market Admin</title>
+
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       min-height: 100vh;
@@ -18,6 +20,7 @@
       color: #eef5f7;
       font-family: system-ui, sans-serif;
     }
+
     main {
       width: 100%;
       max-width: 420px;
@@ -26,21 +29,34 @@
       border-radius: 18px;
       background: #101920;
     }
-    .brand { color: #00e6a0; font-size: 28px; font-weight: 800; }
-    h1 { font-size: 23px; margin-bottom: 8px; }
+
+    .brand {
+      color: #00e6a0;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    h1 { font-size: 23px; }
     p { color: #a7b7c0; line-height: 1.6; }
-    label { display: block; margin: 18px 0 8px; }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+    }
+
     input, button {
       width: 100%;
       padding: 13px;
       border-radius: 9px;
       font: inherit;
     }
+
     input {
       color: white;
       background: #091116;
       border: 1px solid #344650;
     }
+
     button {
       margin-top: 20px;
       border: 0;
@@ -49,9 +65,19 @@
       font-weight: 700;
       cursor: pointer;
     }
-    #notice { font-size: 14px; }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #notice {
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
+
 <body>
   <main>
     <div class="brand">AF.Market</div>
@@ -60,56 +86,66 @@
 
     <form id="login-form">
       <label for="email">Admin email</label>
-      <input id="email" type="email" autocomplete="username"
-             placeholder="Your admin email" required>
+      <input
+        id="email"
+        type="email"
+        autocomplete="username"
+        placeholder="Your admin email"
+        required
+      >
 
       <label for="password">Password</label>
-      <input id="password" type="password"
-             autocomplete="current-password"
-             placeholder="Your password" required>
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Your password"
+        required
+      >
 
-      <button type="submit">Continue</button>
-      <p id="notice" role="status">
-        Initial interface only — secure authentication is not connected yet.
+      <button id="login-button" type="submit">
+        Continue
+      </button>
+
+      <p id="notice" role="status" aria-live="polite">
+        Sign in with your administrator account.
       </p>
     </form>
   </main>
 
-  <script>
-    document.getElementById("login-form").addEventListener("submit", event => {
+  <script type="module">
+    import { signInAdmin } from "./auth.js";
+
+    const form = document.querySelector("#login-form");
+    const notice = document.querySelector("#notice");
+    const button = document.querySelector("#login-button");
+
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      document.getElementById("notice").textContent =
-        "Authentication is not configured yet. No login was attempted.";
+
+      if (button.disabled) return;
+
+      const email = document.querySelector("#email").value.trim();
+      const password = document.querySelector("#password").value;
+
+      button.disabled = true;
+      notice.textContent = "Signing in...";
+      notice.style.color = "#a7b7c0";
+
+      try {
+        await signInAdmin(email, password);
+
+        notice.textContent = "Login successful. Redirecting...";
+        notice.style.color = "#00e6a0";
+
+        window.location.replace("./dashboard.html");
+      } catch (error) {
+        notice.textContent =
+          error.message || "Login failed. Please try again.";
+        notice.style.color = "#ff6868";
+        button.disabled = false;
+      }
     });
   </script>
-
-<script type="module">
-  import { signInAdmin } from "./auth.js";
-
-  const form = document.querySelector("form");
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const email = form.querySelector('input[type="email"]').value.trim();
-    const password = form.querySelector('input[type="password"]').value;
-    const message = document.querySelector("#message");
-
-    try {
-    await signInAdmin(email, password);
-message.textContent = "Login successful. Redirecting...";
-message.style.color = "#00ff99";
-
-window.location.replace("./dashboard.html");
-    } catch (error) {
-      message.textContent = error.message || "Login failed.";
-      message.style.color = "#ff5555";
-    }
-  });
-</script>
-</body>
-</html>
-
-
 </body>
 </html>
