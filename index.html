@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#ffffff">
   <title>AF.Market Admin</title>
 
   <style>
@@ -13,67 +13,131 @@
     body {
       margin: 0;
       min-height: 100vh;
+      min-height: 100dvh;
       display: grid;
       place-items: center;
-      padding: 20px;
-      background: #080d12;
-      color: #eef5f7;
-      font-family: system-ui, sans-serif;
+      padding: 24px;
+      background: #f7f9f8;
+      color: #202923;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     main {
       width: 100%;
       max-width: 420px;
-      padding: 30px;
-      border: 1px solid #263640;
+      padding: 32px;
+      border: 1px solid #e3e9e5;
       border-radius: 18px;
-      background: #101920;
+      background: #ffffff;
+      box-shadow: 0 12px 40px rgba(26, 49, 35, 0.06);
     }
 
     .brand {
-      color: #00e6a0;
+      color: #16865c;
       font-size: 28px;
       font-weight: 800;
+      letter-spacing: -0.7px;
     }
 
-    h1 { font-size: 23px; }
-    p { color: #a7b7c0; line-height: 1.6; }
+    h1 {
+      margin: 22px 0 8px;
+      font-size: 24px;
+      line-height: 1.35;
+      color: #17231c;
+    }
+
+    p {
+      color: #6b786f;
+      line-height: 1.6;
+    }
 
     label {
       display: block;
-      margin: 18px 0 8px;
+      margin: 20px 0 8px;
+      color: #34443a;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     input, button {
       width: 100%;
-      padding: 13px;
+      min-height: 48px;
+      padding: 13px 14px;
       border-radius: 9px;
       font: inherit;
     }
 
     input {
-      color: white;
-      background: #091116;
-      border: 1px solid #344650;
+      color: #202923;
+      background: #ffffff;
+      border: 1px solid #d8e1db;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input::placeholder {
+      color: #9aa69e;
+    }
+
+    input:focus {
+      border-color: #21966a;
+      box-shadow: 0 0 0 3px rgba(33, 150, 106, 0.12);
     }
 
     button {
-      margin-top: 20px;
-      border: 0;
-      background: #00e6a0;
-      color: #06120e;
+      margin-top: 24px;
+      border: 1px solid #16865c;
+      background: #16865c;
+      color: #ffffff;
       font-weight: 700;
       cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #116d4a;
+    }
+
+    button:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(33, 150, 106, 0.25);
+      outline-offset: 3px;
     }
 
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.65;
       cursor: wait;
     }
 
     #notice {
-      font-size: 14px;
+      margin: 18px 0 0;
+      font-size: 13px;
       overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 16px;
+      }
+
+      main {
+        padding: 25px 21px;
+        border-radius: 15px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+
+    @media (min-width: 900px) {
+      main {
+        max-width: 440px;
+        padding: 36px;
+      }
     }
   </style>
 </head>
@@ -130,19 +194,19 @@
 
       button.disabled = true;
       notice.textContent = "Signing in...";
-      notice.style.color = "#a7b7c0";
+      notice.style.color = "#6b786f";
 
       try {
         await signInAdmin(email, password);
 
         notice.textContent = "Login successful. Redirecting...";
-        notice.style.color = "#00e6a0";
+        notice.style.color = "#16865c";
 
         window.location.replace("./dashboard.html");
       } catch (error) {
         notice.textContent =
           error.message || "Login failed. Please try again.";
-        notice.style.color = "#ff6868";
+        notice.style.color = "#d83b3b";
         button.disabled = false;
       }
     });
